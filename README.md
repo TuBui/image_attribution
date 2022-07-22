@@ -1,7 +1,7 @@
 # RepMix: Representation Mixing for Robust Attribution of Synthesized Images
 ![Python 3.8](https://img.shields.io/badge/Python-3.8-green) ![Pytorch 1.8.1](https://img.shields.io/badge/Pytorch-1.8.1-green) ![Licence CC-BY-4.0](https://img.shields.io/badge/license-CC--4.0--BY-blueviolet)
 
-This repo contains official code, datasets and model for the ECCV 2022 paper ["RepMix: Representation Mixing for Robust Attribution of Synthesized Images"](https://arxiv.org/abs/2207.02063).
+This repo contains official code and datasets for the ECCV 2022 paper ["RepMix: Representation Mixing for Robust Attribution of Synthesized Images"](https://arxiv.org/abs/2207.02063).
 
 ## Dependencies
 
