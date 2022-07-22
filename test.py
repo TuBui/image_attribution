@@ -64,9 +64,9 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test pl model')
-    parser.add_argument('-d', '--data_dir', default='/vol/research/contentprov/projects/ganprov/clean_images2/ImageNet-C', help='test data directory')
-    parser.add_argument('-l', '--data_list', default='/vol/research/tubui1/projects/gan_prov/analyze/splits/t2_11_test.csv', help='test lst')
-    parser.add_argument('-w', '--weight', default='/vol/research/NOBACKUP/CVSSP/scratch_4weeks/tb0035/projects/ganprov/models/publish/sgd/last.ckpt', help='model weight')
+    parser.add_argument('-d', '--data_dir', default='/data/processed', help='test data directory')
+    parser.add_argument('-l', '--data_list', default='/data/test.csv', help='test lst')
+    parser.add_argument('-w', '--weight', default='/model/last.ckpt', help='model weight')
 
     args = parser.parse_args()
     timer = Timer()

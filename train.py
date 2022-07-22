@@ -90,56 +90,6 @@ def main(args):
     msg = f'Done. Best ckpt at {checkpoint.best_model_path}. Total time: {timer.time()}.'
     print(msg)
 
-    # test
-    args.test_dir = '/vol/research/contentprov/projects/ganprov/clean_images2/ImageNet-C'
-    args.test_list = '/vol/research/tubui1/projects/gan_prov/analyze/splits/t2_11_test.csv'
-    if args.test_list:
-        nmix = hps.mixup_samples
-        def collate_fn(batch):
-            # make duplicate input data
-            if isinstance(batch[0][0], dict):
-                x = torch.stack([b[0]['x'] for b in batch])
-            else:
-                x = torch.cat([b[0] for b in batch])
-            bs, c, h, w = x.shape
-            x = x.repeat(1, nmix, 1, 1).reshape(-1, c, h, w)
-            y = {}
-            for key in batch[0][1].keys():
-                val = torch.stack([torch.as_tensor(b[1][key]) for b in batch])
-                y[key] = val 
-            return {'x': x, 'beta': None}, y 
-
-        test_set = ImageFolder(args.test_dir, args.test_list)
-        test_set.set_transform(model.transforms['clean'])
-        print(test_set)
-        cfn = collate_fn
-        test_loader = torch.utils.data.DataLoader(test_set, batch_size=hps.batch_size, shuffle=False, num_workers=4, collate_fn=collate_fn)
-
-        # test best and last checkpoint
-        for model_path in [checkpoint.best_model_path, os.path.join(args.output, 'last.ckpt')]:
-            print(f'Test begins. Seen sems/total: {nsems}/{len(test_set.dclasses)}\nWeight: {model_path}.')
-            model = model.load_from_checkpoint(model_path)
-            model = model.cuda()
-            model.eval()
-            det, attr, labels = [], [], []
-            niters = len(test_set)//hps.batch_size
-            with torch.no_grad():
-                for x,y in tqdm(test_loader, total=niters, miniters=niters//10, mininterval=60):
-                    x = to_cuda(x)
-                    y = np.c_[y['y_gan'].cpu().numpy(), y['y_sem'].cpu().numpy()]
-                    out = model(x)
-                    attr.append(out['attribution'].cpu().numpy())
-                    labels.append(y)
-                    det.append(out['detection'].cpu().numpy())
-            attr, labels = [np.concatenate(x) for x in [attr, labels]]
-            det = np.concatenate(det)
-
-            pred = attr.argmax(axis=1)
-            pacc = np.mean((pred > 0) == (labels[:,0] > 0))  # real/fake prediction
-            acc = np.mean(pred == labels[:,0])  # attribution
-            nmi = compute_nmi(pred, labels[:,0])
-            print(f'Det acc, Attr acc, NMI: {pacc:.4f} & {acc:.4f} & {nmi:.4f}')
-
 
 if __name__ == '__main__':
     parser = ArgumentParser()
@@ -154,8 +104,8 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--seed", type=int, default=-1, help='random seed, -1 mean no seed')
 
     # data args
-    parser.add_argument("-tl", "--train_list", default='data/a2_6_train.csv')
-    parser.add_argument("-vl", "--val_list", default='data/a2_6_val.csv')
+    parser.add_argument("-tl", "--train_list", default='data/train.csv')
+    parser.add_argument("-vl", "--val_list", default='data/val.csv')
     parser.add_argument('-d', '--data_dir', default='data/')
 
     args = parser.parse_args()

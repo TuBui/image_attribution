@@ -32,7 +32,7 @@ def default_hparams():
         # loss
         mixup_samples=2,  # no. of images to mix
         mixup_beta=0.4,  # 0. if uniform
-        mixup_level=0,  # for MixupCNN only
+        mixup_level=5,  # position of mixup layer
 
         # transform settings
         transform_prob=1.0,  # transform applying probability
@@ -48,7 +48,7 @@ def default_hparams():
         gpus=1,
         img_rsize=256,  # image input size
         img_csize=224,  # image crop size
-        max_c=19,  # max no of imagenetc tforms for augmentation
+        max_c=15,  # max no of imagenetc tforms for augmentation
         early_stop=True,
         img_mean=[0.5,0.5,0.5], # [0.485, 0.456, 0.406],
         img_std=[0.5,0.5,0.5],  # [0.229, 0.224, 0.225],
@@ -60,7 +60,7 @@ def default_hparams():
         lr_betas=[0.9, 0.999],  # Adam lr beta values
         lr_scheduler='multistep',  # step, multistep
         lr=0.0001,  # initial lr
-        lr_gamma=0.8,  # lr gamma in StepLR scheduler
+        lr_gamma=0.85,  # lr gamma in StepLR scheduler
         grad_clip=0.,  # gradient clipping, 0 if no clip
         grad_iters=1,  # number of iterations before loss and gradient are computed and network params are updated
         weight_decay=0.0005,
@@ -87,7 +87,7 @@ class ResnetMixup(nn.Module):
         model.insert(mix_level, mx_layer)
         self.mix_level = mix_level
         self.model = nn.ModuleList(model)
-        # print(f'ResnetMixup, inference mode: {self.inference}:\n', self.model)
+        print(f'ResnetMixup, inference mode: {self.inference}:\n', self.model)
 
     def forward(self, x, ratio=None):
         for i, layer in enumerate(self.model):
@@ -143,12 +143,12 @@ class RepMix(pl.LightningModule):
     def compute_loss(self, pred, target):
         hps = self.hparams
         out = {}
-        if hps.inference:  # inference mode, for adversarial training
+        if hps.inference:
             out['attribution_loss'] = torch.mean(self.attr_ce(pred['attribution'], target['y_gan']))
             out['detection_loss'] = torch.mean(self.det_ce(pred['detection'], target['y_det']))
         else:
-            mnum = hps.mixup_samples  # number of images mixing into 1 in total
-            if mnum==1:  # no mixup
+            mnum = hps.mixup_samples
+            if mnum==1:
                 target['y_gan'] = target['y_gan'].unsqueeze(1)
                 target['beta'] = target['beta'].unsqueeze(1)
                 target['y_det'] = target['y_det'].unsqueeze(1)
